@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+- **NeoForge: vanilla clients can now connect to servers running the mod.** The HUD-sync network channel is now registered as `optional()`, so the handshake no longer rejects clients that don't have Limited Spectator installed. `sendHudState` also checks `hasChannel()` before dispatching, so server-only deployments stay error-free. (Closes #2)
+
+### Changed
+- **Modrinth manifest**: description now explicitly states the mod is server-authoritative and that client install is recommended-but-optional. Vanilla clients are supported on all loaders.
+- **README**: new "🌐 Environment Requirements" section with a per-loader breakdown of where the mod must be installed vs. where it is recommended for the best UX.
+
+### Internal
+- Comprehensive `.gitattributes` rules: all source/config/script files normalized to LF on commit, `*.bat`/`*.cmd` kept as CRLF, common binaries marked. Fixes `./gradlew` on Linux (CRLF shebang broke `/bin/sh`).
+
+---
+
 ## [2.0.0] - 2026-01-18
 
 ### 🚀 Multi-Loader Architecture Release

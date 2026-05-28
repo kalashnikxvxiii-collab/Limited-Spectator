@@ -199,6 +199,35 @@ All configuration changes can be applied without restarting the server using `/r
 • ⚠️ Limited Spectator uses standard NeoForge event hooks and should be compatible with most mods. However, mods that deeply alter player gamemode handling or HUD rendering may interfere with its behavior.
 
 
+🌐 Environment Requirements
+=============================
+
+Limited Spectator is a **server-authoritative** mod. The Modrinth "Client and server" tag refers to where the mod *can* be installed, not where it is *required*.
+
+| Where to install | Required | Result |
+| ---------------- | -------- | ------ |
+| **Server**       | ✅ Yes   | All gameplay restrictions (distance limits, item drop/pickup, interactions, attacks, dimension travel, command permissions) are enforced here. The mod cannot function without being on the server. |
+| **Client**       | ⚪ Optional but **highly recommended** | Enables a richer UX: HUD auto-hide when entering `/spectator`, F1 toggle for temporary HUD reveal, and tighter sync with world events/interactions. |
+
+### Connection compatibility
+
+- **Vanilla clients can join a server running Limited Spectator.** All restrictions still apply server-side — players just won't get the HUD-hide effect.
+- **Clients with Limited Spectator installed** get the full intended experience (clean HUD, synced events).
+
+### Per-loader detail
+
+- **Fabric & Quilt** builds: no client-side code currently exists, so the JAR is effectively server-only. Installing it on the client is harmless but adds no extra features today.
+- **NeoForge** build: the only client-side piece is a small optional packet handler for HUD sync. The network channel is registered as **optional**, so connection handshake works against both modded and vanilla clients.
+
+### Recommended setup
+
+| Use case | Server | Client |
+| -------- | ------ | ------ |
+| Public SMP with vanilla guests | Required | Vanilla works, install for full UX |
+| Private server, all members modded | Required | **Install on both for best experience** |
+| Single-player testing | n/a | Required (acts as local server) |
+
+
 🧰 Installation
 =================
 

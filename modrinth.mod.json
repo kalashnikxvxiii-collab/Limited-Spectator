@@ -3,7 +3,7 @@
   "id": "limited-spectator",
   "version": "1.1.1",
   "name": "Limited Spectator",
-  "description": "Fully configurable spectator mode with flight, distance limits, and customizable restrictions. Players can fly and observe the world with strict limitations to preserve game balance on servers.",
+  "description": "Fully configurable server-authoritative spectator mode with flight, distance limits, and customizable restrictions. Required on the server; client install is optional but highly recommended for the best UX (HUD auto-hide and event sync). Vanilla clients can join servers running this mod.",
   "authors": [
     "Kala"
   ],
