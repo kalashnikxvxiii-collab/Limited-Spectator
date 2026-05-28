@@ -68,10 +68,10 @@ configurations.configureEach {
 runs {
     client {
         workingDirectory = project.file("run")
-        getArguments().addAll("--username", "DevClient")
+        arguments '--username', 'DevClient'
     }
     server {
         workingDirectory = project.file("runServer")
-        getArguments().addAll("--nogui")
+        arguments '--nogui'
     }
 }
