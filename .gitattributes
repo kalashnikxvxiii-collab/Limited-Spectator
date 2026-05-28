@@ -1,5 +1,48 @@
-# Disable autocrlf on generated files, they always generate with LF
-# Add any extra files or paths here to make git stop saying they
-# are changed when only line endings change.
+# Default: auto-detect text vs binary, normalize all text files to LF on commit.
+* text=auto eol=lf
+
+# Source code & build files — always LF
+*.java         text eol=lf
+*.kt           text eol=lf
+*.kts          text eol=lf
+*.gradle       text eol=lf
+*.properties   text eol=lf
+*.toml         text eol=lf
+*.json         text eol=lf
+*.json5        text eol=lf
+*.yml          text eol=lf
+*.yaml         text eol=lf
+*.xml          text eol=lf
+*.md           text eol=lf
+*.txt          text eol=lf
+*.sh           text eol=lf
+gradlew        text eol=lf
+.gitattributes text eol=lf
+.gitignore     text eol=lf
+
+# Windows-specific scripts — keep CRLF so cmd.exe works
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Mixin / data files
+*.mixins.json text eol=lf
+*.mcmeta      text eol=lf
+
+# Binary files — never touch
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.ico   binary
+*.icns  binary
+*.jar   binary
+*.zip   binary
+*.gz    binary
+*.class binary
+*.nbt   binary
+*.dat   binary
+*.ogg   binary
+
+# NeoForge generated data — already LF upstream (preserved from original rules)
 src/generated/**/.cache/cache text eol=lf
-src/generated/**/*.json text eol=lf
+src/generated/**/*.json       text eol=lf
