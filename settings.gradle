@@ -3,18 +3,16 @@ pluginManagement {
         gradlePluginPortal()
         maven { url = 'https://maven.neoforged.net/releases' }
         maven { url = 'https://maven.fabricmc.net/' }
-        maven { url = 'https://maven.quiltmc.org/repository/release' }
     }
 }
 
 plugins {
-    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.8.0'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
 }
 
 rootProject.name = 'limited-spectator'
 
-// Multi-project structure
+// Multi-project structure (Quilt dropped on mc-26.1 — loader does not support MC 26.1.x yet)
 include 'common'
 include 'neoforge'
 include 'fabric'
-include 'quilt'

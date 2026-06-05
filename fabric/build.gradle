@@ -1,16 +1,13 @@
 plugins {
+    // Plugin ID changed for MC 26.1: 'fabric-loom' -> 'net.fabricmc.fabric-loom'.
+    // The new Loom no longer remaps Minecraft or mods because MC 26.1 ships with
+    // official Mojang mappings. See https://fabricmc.net/2026/03/14/261.html
     id 'java-library'
-    id 'fabric-loom' version '1.7.3'
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
 }
 
-group = 'com.karashi'
-version = mod_version
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-    withSourcesJar()
+base {
+    archivesName = 'LimitedSpectator-fabric'
 }
 
 repositories {
@@ -19,78 +16,63 @@ repositories {
 }
 
 dependencies {
-    // Common module
     implementation project(':common')
-    
-    // Fabric
-    minecraft "com.mojang:minecraft:${minecraft_version}"
-    mappings loom.officialMojangMappings()
-    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
-}
 
-// Force dependency versions to fix security vulnerabilities
-configurations.configureEach {
-    resolutionStrategy {
-        // Force ALL Netty modules to 4.1.125.Final
-        force 'io.netty:netty-handler:4.1.125.Final'
-        force 'io.netty:netty-common:4.1.125.Final'
-        force 'io.netty:netty-buffer:4.1.125.Final'
-        force 'io.netty:netty-transport:4.1.125.Final'
-        force 'io.netty:netty-codec:4.1.125.Final'
-        force 'io.netty:netty-codec-compression:4.1.125.Final'
-        force 'io.netty:netty-resolver:4.1.125.Final'
-        force 'io.netty:netty-transport-classes-epoll:4.1.125.Final'
-        force 'io.netty:netty-transport-native-unix-common:4.1.125.Final'
-        force 'io.netty:netty-transport-native-epoll:4.1.125.Final'
-        
-        force 'org.apache.logging.log4j:log4j-core:2.25.3'
-        force 'org.apache.logging.log4j:log4j-api:2.25.3'
-        force 'at.yawk.lz4:lz4-java:1.10.1'
-        force 'org.apache.commons:commons-lang3:3.18.0'
-        
-        dependencySubstitution {
-            substitute module('org.lz4:lz4-java') using module('at.yawk.lz4:lz4-java:1.10.1')
-        }
-    }
+    // Minecraft is no longer remapped. No 'mappings' line: 26.1 is unobfuscated.
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+
+    // Plain 'implementation' (not 'modImplementation') since Loom 1.16 stopped
+    // performing the remap dance for 26.1+.
+    implementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
 }
 
 loom {
     runs {
         client {
             client()
-            name = "Fabric Client"
+            name = 'Fabric Client'
             source sourceSets.main
         }
         server {
             server()
-            name = "Fabric Server"
+            name = 'Fabric Server'
             source sourceSets.main
+        }
+    }
+
+    // Same trick as NeoForge's modSources grouping: include :common's source
+    // set as part of the limitedspectator mod so its classes are loaded by
+    // Fabric's mod classloader at dev runtime (production JAR bundles them too,
+    // see jar { from(...) } below).
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+            sourceSet project(':common').sourceSets.main
         }
     }
 }
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.release = 21
-}
-
 processResources {
     inputs.property 'version', project.version
-    
+
     filesMatching('fabric.mod.json') {
         expand 'version': project.version
     }
 }
 
+java {
+    withSourcesJar()
+}
+
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    
+
     from('LICENSE') {
         rename { "${it}_LimitedSpectator-fabric" }
     }
-    
-    // Include common classes
+
+    // Bundle :common's compiled classes so users only need a single JAR.
     from(project(':common').sourceSets.main.output)
 }
 
@@ -98,28 +80,3 @@ sourcesJar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     from(project(':common').sourceSets.main.allSource)
 }
-
-// Rename JARs after remapping to match NeoForge naming convention
-tasks.register('renameJars') {
-    dependsOn remapJar, remapSourcesJar
-    
-    doLast {
-        // Rename main JAR
-        def mainJar = file("${buildDir}/libs/fabric-${project.version}.jar")
-        def newMainJar = file("${buildDir}/libs/LimitedSpectator-fabric-${project.version}.jar")
-        if (mainJar.exists()) {
-            mainJar.renameTo(newMainJar)
-            println "✓ Renamed ${mainJar.name} to ${newMainJar.name}"
-        }
-        
-        // Rename sources JAR
-        def sourcesJar = file("${buildDir}/libs/fabric-${project.version}-sources.jar")
-        def newSourcesJar = file("${buildDir}/libs/LimitedSpectator-fabric-${project.version}-sources.jar")
-        if (sourcesJar.exists()) {
-            sourcesJar.renameTo(newSourcesJar)
-            println "✓ Renamed ${sourcesJar.name} to ${newSourcesJar.name}"
-        }
-    }
-}
-
-build.finalizedBy renameJars

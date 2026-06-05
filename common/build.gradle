@@ -1,14 +1,13 @@
+// :common is loader-agnostic — no Minecraft / NeoForge / Fabric imports allowed.
+// Java toolchain + JUnit/Mockito test deps are inherited from the root
+// allprojects/subprojects blocks (group, version, languageVersion = 25,
+// release = 25, CVE-pinning forces).
+
 plugins {
     id 'java'
 }
 
-group = 'com.karashi'
-version = mod_version
-
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
     withSourcesJar()
 }
 
@@ -17,19 +16,17 @@ repositories {
 }
 
 dependencies {
-    // SLF4J for logging (provided by loaders at runtime)
+    // SLF4J for logging (provided by loaders at runtime).
     compileOnly 'org.slf4j:slf4j-api:2.0.9'
-    
-    // JUnit 5 for testing
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.1'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.10.1'
-    
-    // Mockito for mocking
-    testImplementation 'org.mockito:mockito-core:5.8.0'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.8.0'
-    
-    // SLF4J for tests (simple implementation)
+
+    // Bumped Junit/Mockito to versions known to work on Java 25.
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.13.2'
+    testRuntimeOnly  'org.junit.jupiter:junit-jupiter-engine:5.13.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.13.2'
+
+    testImplementation 'org.mockito:mockito-core:5.18.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.18.0'
+
     testImplementation 'org.slf4j:slf4j-api:2.0.9'
     testImplementation 'org.slf4j:slf4j-simple:2.0.9'
 }
@@ -37,25 +34,20 @@ dependencies {
 test {
     useJUnitPlatform()
     testLogging {
-        events "passed", "skipped", "failed"
-        exceptionFormat "full"
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'full'
     }
-}
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.release = 21
 }
 
 jar {
     manifest {
         attributes([
-            'Specification-Title'     : 'Limited Spectator Common',
-            'Specification-Vendor'    : 'Karashi',
-            'Specification-Version'   : '1',
-            'Implementation-Title'    : project.name,
-            'Implementation-Version'  : project.version,
-            'Implementation-Vendor'   : 'Karashi'
+                'Specification-Title'   : 'Limited Spectator Common',
+                'Specification-Vendor'  : 'Karashi',
+                'Specification-Version' : '1',
+                'Implementation-Title'  : project.name,
+                'Implementation-Version': project.version,
+                'Implementation-Vendor' : 'Karashi'
         ])
     }
 }

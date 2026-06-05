@@ -1,77 +1,63 @@
-plugins {
-    id 'net.neoforged.gradle.userdev' version '7.0.167'
+// Root build script — multi-project parent.
+//
+// The root project itself doesn't ship any artifact on the mc-26.1 line. Each
+// loader (neoforge, fabric) and the loader-agnostic :common module declare
+// their own plugins and dependencies.
+//
+// What lives here:
+//   1. Properties shared by every subproject (version, group, Java toolchain).
+//   2. A single resolutionStrategy block that pins transitive dependency
+//      versions across every subproject — these are CVE mitigations and must
+//      apply uniformly even when the loader plugin would otherwise drag in
+//      vulnerable versions transitively.
+
+allprojects {
+    group = 'com.karashi'
+    version = project.mod_version
 }
 
-base {
-    archivesName = 'LimitedSpectator-neoforge'
-}
+subprojects {
+    apply plugin: 'java'
 
-group = 'com.karashi'
-version = mod_version
-
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
-}
-
-sourceSets {
-    main {
-        java {
-            exclude '**/fabric/**'
-            exclude '**/quilt/**'
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
         }
     }
-}
 
-repositories {
-    maven { url = "https://maven.neoforged.net/releases" }
-    mavenCentral()
-}
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 25
+    }
 
-dependencies {
-    implementation "net.neoforged:neoforge:21.1.217"
-}
+    // Force transitive dependency versions to address known CVEs.
+    // Re-evaluate when bumping NeoForge / Fabric — newer loader releases may
+    // already ship fixed versions, in which case these forces become no-ops.
+    //   CVE-2025-58057 / CVE-2025-25193 / CVE-2024-47535 / CVE-2025-24970: Netty
+    //   CVE-2025-68161: Log4j (TLS hostname verification)
+    //   CVE-2025-48924: Apache Commons Lang (uncontrolled recursion)
+    //   CVE-2025-66566: LZ4 (buffer disclosure)
+    configurations.configureEach {
+        resolutionStrategy {
+            force 'io.netty:netty-handler:4.1.125.Final'
+            force 'io.netty:netty-common:4.1.125.Final'
+            force 'io.netty:netty-buffer:4.1.125.Final'
+            force 'io.netty:netty-transport:4.1.125.Final'
+            force 'io.netty:netty-codec:4.1.125.Final'
+            force 'io.netty:netty-codec-compression:4.1.125.Final'
+            force 'io.netty:netty-resolver:4.1.125.Final'
+            force 'io.netty:netty-transport-classes-epoll:4.1.125.Final'
+            force 'io.netty:netty-transport-native-unix-common:4.1.125.Final'
+            force 'io.netty:netty-transport-native-epoll:4.1.125.Final'
 
-// Force dependency versions to fix security vulnerabilities
-// CVE-2025-58057: Netty BrotliDecoder DoS (CVSS 7.5)
-// CVE-2024-47535, CVE-2025-25193: Netty environment file DoS (CVSS 5.5)
-// CVE-2025-24970: Netty SslHandler native crash (CVSS 7.5)
-// CVE-2025-68161: Log4j TLS hostname verification (CVSS 5.4)
-// CVE-2025-48924: Commons Lang uncontrolled recursion (CVSS 5.3)
-// CVE-2025-66566: LZ4 buffer disclosure (CVSS 7.5)
-configurations.configureEach {
-    resolutionStrategy {
-        // Force ALL Netty modules to 4.1.125.Final
-        force 'io.netty:netty-handler:4.1.125.Final'
-        force 'io.netty:netty-common:4.1.125.Final'
-        force 'io.netty:netty-buffer:4.1.125.Final'
-        force 'io.netty:netty-transport:4.1.125.Final'
-        force 'io.netty:netty-codec:4.1.125.Final'
-        force 'io.netty:netty-codec-compression:4.1.125.Final'
-        force 'io.netty:netty-resolver:4.1.125.Final'
-        force 'io.netty:netty-transport-classes-epoll:4.1.125.Final'
-        force 'io.netty:netty-transport-native-unix-common:4.1.125.Final'
-        force 'io.netty:netty-transport-native-epoll:4.1.125.Final'
-        
-        force 'org.apache.logging.log4j:log4j-core:2.25.3'
-        force 'org.apache.logging.log4j:log4j-api:2.25.3'
-        force 'at.yawk.lz4:lz4-java:1.10.1'
-        force 'org.apache.commons:commons-lang3:3.18.0'
-        
-        dependencySubstitution {
-            substitute module('org.lz4:lz4-java') using module('at.yawk.lz4:lz4-java:1.10.1') because 'CVE-2025-66566 fix'
+            force 'org.apache.logging.log4j:log4j-core:2.25.3'
+            force 'org.apache.logging.log4j:log4j-api:2.25.3'
+            force 'at.yawk.lz4:lz4-java:1.10.1'
+            force 'org.apache.commons:commons-lang3:3.18.0'
+
+            dependencySubstitution {
+                substitute module('org.lz4:lz4-java') using module('at.yawk.lz4:lz4-java:1.10.1') because 'CVE-2025-66566 fix'
+            }
         }
-    }
-}
-
-runs {
-    client {
-        workingDirectory = project.file("run")
-        arguments '--username', 'DevClient'
-    }
-    server {
-        workingDirectory = project.file("runServer")
-        arguments '--nogui'
     }
 }
