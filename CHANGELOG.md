@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - **Modrinth manifest**: description now explicitly states the mod is server-authoritative and that client install is recommended-but-optional. Vanilla clients are supported on all loaders.
 - **README**: new "🌐 Environment Requirements" section with a per-loader breakdown of where the mod must be installed vs. where it is recommended for the best UX.
+- **Minecraft version range — consistency pass across manifests.** The mod has always been intended (and documented) as compatible with the full **1.21.x** family, tested up to 1.21.11. Two manifests drifted from that intent:
+  - `modrinth.mod.json` declared `"minecraft": "1.21.1"` (exact-match, only 1.21.1). Now `">=1.21.1 <1.22"`, matching the actual supported range.
+  - `neoforge.mods.toml` declared `versionRange="[1.21.1,)"` (open upper bound, would attempt to load on future MC 1.22 / 26.x and crash on first renamed API call). Now `"[1.21.1,1.22)"`, matching `gradle.properties` and the other loader manifests.
 
 ### Internal
 - Comprehensive `.gitattributes` rules: all source/config/script files normalized to LF on commit, `*.bat`/`*.cmd` kept as CRLF, common binaries marked. Fixes `./gradlew` on Linux (CRLF shebang broke `/bin/sh`).

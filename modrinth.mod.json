@@ -15,7 +15,7 @@
   "license": "MIT",
   "environment": "both",
   "depends": {
-    "minecraft": "1.21.1",
+    "minecraft": ">=1.21.1 <1.22",
     "neoforge": ">=21.1.0"
   },
   "optionalDependencies": {},
