@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Internal
 - Comprehensive `.gitattributes` rules: all source/config/script files normalized to LF on commit, `*.bat`/`*.cmd` kept as CRLF, common binaries marked. Fixes `./gradlew` on Linux (CRLF shebang broke `/bin/sh`).
+- **NeoForge dev runs (`:neoforge:runClient` / `:neoforge:runServer`)** now correctly load the `:common` module's classes (`SpectatorConfig`, `CommonConfig`, `ConfigReloadWatcher`). Both source sets are grouped under the same `limitedspectator` mod identifier via NeoGradle's `modSources { add 'limitedspectator', ... }` API so they end up in the same fake-fat-jar at dev time. Previously the dev server crashed at boot with `NoClassDefFoundError: SpectatorConfig` even though the production JAR (which bundles `:common`'s output) worked fine.
 
 ---
 

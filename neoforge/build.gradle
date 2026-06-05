@@ -30,7 +30,18 @@ runs {
     configureEach {
         systemProperty 'forge.logging.markers', 'REGISTRIES'
         systemProperty 'forge.logging.console.level', 'debug'
-        modSource project.sourceSets.main
+        // Group both source sets under the same mod identifier so NeoGradle
+        // bundles them into one "fake fat jar" as the limitedspectator mod.
+        // Required because common/ has no neoforge.mods.toml of its own and
+        // shares the com.karashi.limitedspectator package with this module
+        // (no two separate modules may share a package). Without this:
+        //   - default modSource → NoClassDefFoundError: SpectatorConfig at boot
+        //   - two separate modSource calls → "common/build/resources/main
+        //     is not a valid mod file" pre-loading FATAL.
+        modSources {
+            add 'limitedspectator', project.sourceSets.main
+            add 'limitedspectator', project(':common').sourceSets.main
+        }
     }
 
     client {
