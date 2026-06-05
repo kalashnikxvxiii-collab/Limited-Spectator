@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [2.0.1] - 2026-06-05
+
+### 🔧 Compatibility & Cleanup Hotfix
+
+Drop-in update on top of v2.0.0. Lets vanilla clients connect to servers running the NeoForge build, aligns Minecraft version ranges across all manifests, fixes the dev environment for contributors on Linux, and corrects long-standing version metadata drift inside the published JARs.
 
 ### Fixed
 - **NeoForge: vanilla clients can now connect to servers running the mod.** The HUD-sync network channel is now registered as `optional()`, so the handshake no longer rejects clients that don't have Limited Spectator installed. `sendHudState` also checks `hasChannel()` before dispatching, so server-only deployments stay error-free. (Closes #2)
+- **Internal version metadata.** Since v1.2.1 → v2.0.0, the NeoForge JAR's `META-INF/neoforge.mods.toml` had been declaring `version="1.21.x-1.2.1"` and the project-level `modrinth.mod.json` had been declaring `"version": "1.1.1"` — both hard-coded, never updated through the v2.0.0 release. Now `neoforge.mods.toml` uses the `${mod_version}` placeholder (the `ProcessResources` `expand` was already wired up for it) and `modrinth.mod.json` is synced to the current version. The Fabric and Quilt manifests already used `${version}` and were unaffected.
 
 ### Changed
 - **Modrinth manifest**: description now explicitly states the mod is server-authoritative and that client install is recommended-but-optional. Vanilla clients are supported on all loaders.
@@ -22,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Internal
 - Comprehensive `.gitattributes` rules: all source/config/script files normalized to LF on commit, `*.bat`/`*.cmd` kept as CRLF, common binaries marked. Fixes `./gradlew` on Linux (CRLF shebang broke `/bin/sh`).
 - **NeoForge dev runs (`:neoforge:runClient` / `:neoforge:runServer`)** now correctly load the `:common` module's classes (`SpectatorConfig`, `CommonConfig`, `ConfigReloadWatcher`). Both source sets are grouped under the same `limitedspectator` mod identifier via NeoGradle's `modSources { add 'limitedspectator', ... }` API so they end up in the same fake-fat-jar at dev time. Previously the dev server crashed at boot with `NoClassDefFoundError: SpectatorConfig` even though the production JAR (which bundles `:common`'s output) worked fine.
+- `build.gradle` runs DSL: switched from `getArguments().addAll(...)` to the canonical NeoGradle 7 shorthand `arguments 'arg1', 'arg2'`.
 
 ---
 

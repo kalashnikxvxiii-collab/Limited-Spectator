@@ -67,7 +67,7 @@ Full translation support for 5 European languages (English, Italian, German, Fre
 
 | Aspect                | Value                          |
 | --------------------- | ------------------------------ |
-| **Version**           | 2.0.0                          |
+| **Version**           | 2.0.1                          |
 | **Minecraft**         | 1.21.1 → 1.21.11+ (cross-version compatible) |
 | **Mod Loaders**       | NeoForge ✅ • Fabric ✅ • Quilt ✅ |
 | **NeoForge**          | 21.1.217+                      |
@@ -237,9 +237,9 @@ Download the correct version for your mod loader:
 
 | Loader | File | Notes |
 |--------|------|-------|
-| **NeoForge** | `LimitedSpectator-neoforge-2.0.0.jar` | Full config support |
-| **Fabric** | `LimitedSpectator-fabric-2.0.0.jar` | Hardcoded defaults |
-| **Quilt** | `LimitedSpectator-quilt-2.0.0.jar` | Uses Fabric API |
+| **NeoForge** | `LimitedSpectator-neoforge-2.0.1.jar` | Full config support |
+| **Fabric** | `LimitedSpectator-fabric-2.0.1.jar` | Hardcoded defaults |
+| **Quilt** | `LimitedSpectator-quilt-2.0.1.jar` | Uses Fabric API |
 
 ### Installation Steps
 

@@ -1,4 +1,4 @@
-# Developer Guide - Limited Spectator v2.0.0
+# Developer Guide - Limited Spectator v2.0.1
 
 ## Quick Start
 
@@ -23,10 +23,10 @@ cd limitedspectator
 ```
 
 **Output**: JAR files in `*/build/libs/`
-- `common/build/libs/common-2.0.0.jar` (147 KB)
-- `neoforge/build/libs/LimitedSpectator-neoforge-2.0.0.jar` (174 KB)
-- `fabric/build/libs/fabric-2.0.0.jar` (159 KB)
-- `quilt/build/libs/quilt-2.0.0.jar` (159 KB)
+- `common/build/libs/common-2.0.1.jar` (147 KB)
+- `neoforge/build/libs/LimitedSpectator-neoforge-2.0.1.jar` (174 KB)
+- `fabric/build/libs/fabric-2.0.1.jar` (159 KB)
+- `quilt/build/libs/quilt-2.0.1.jar` (159 KB)
 
 ---
 
@@ -406,5 +406,5 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Last Updated**: 2026-01-19
-**Version**: 2.0.0
+**Last Updated**: 2026-06-05
+**Version**: 2.0.1
