@@ -38,7 +38,7 @@ public class SpectatorManager {
         SpectatorState state = SpectatorState.create(startPosition, startDimension);
         spectatorStates.put(playerUUID, state);
         LOGGER.debug("Player {} entered spectator mode at {} in dimension {}", 
-            playerUUID, startPosition, startDimension.location());
+            playerUUID, startPosition, startDimension.identifier());
     }
     
     /**

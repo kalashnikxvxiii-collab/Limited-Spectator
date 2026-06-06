@@ -2,14 +2,18 @@ package com.karashi.limitedspectator;
 
 // Import Java standard
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 import com.karashi.limitedspectator.network.NetworkHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionSet;
+import net.minecraft.world.entity.Relative;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -25,7 +29,7 @@ import net.minecraft.resources.ResourceKey;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.common.util.TriState;
+import net.minecraft.util.TriState;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -44,7 +48,43 @@ public class SpectatorMod {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SpectatorMod.class);
     public static final String MODID = "limitedspectator";
-    
+
+    // ---- MC 26.1 migration helpers (extracted to keep the bulk of the class unchanged) ----
+
+    /**
+     * Vanilla 1.21.x had {@code displayMessage(player,Component, boolean)} where the
+     * boolean toggled between chat and action-bar. MC 26.1 split that into two distinct
+     * methods (no more boolean overload). Centralise the branching here so call sites stay
+     * tidy.
+     */
+    private static void displayMessage(ServerPlayer player, Component message, boolean useActionBar) {
+        if (useActionBar) {
+            player.sendOverlayMessage(message);
+        } else {
+            player.sendSystemMessage(message);
+        }
+    }
+
+    /**
+     * Vanilla 1.21.x had {@code CommandSourceStack.hasPermission(int)} (op-level check).
+     * MC 26.1 replaced the int-level system with the {@link PermissionSet} interface and
+     * named {@code Permission} objects. The full migration to per-permission checks is a
+     * larger refactor — for the 3.0.0 hot path we keep the same semantics by mapping:
+     * <ul>
+     *   <li>level &le; 0 (everyone): always allowed</li>
+     *   <li>level &ge; 1 (op territory): only the server console / a player with
+     *       {@code ALL_PERMISSIONS}</li>
+     * </ul>
+     * TODO(mc-26.1): replace with proper named-permission checks once the upstream
+     * NeoForge {@code PermissionAPI} story for 26.1 stabilises.
+     */
+    private static boolean hasPermissionLevel(CommandSourceStack source, int level) {
+        if (level <= 0) return true;
+        return source.permissions() == PermissionSet.ALL_PERMISSIONS;
+    }
+
+    // ---- end migration helpers ----
+
     // Core spectator manager - handles all business logic
     private static SpectatorManager spectatorManager;
     
@@ -121,9 +161,9 @@ public class SpectatorMod {
         dispatcher.register(Commands.literal("spectator")
             .requires(source -> {
                 if (com.karashi.limitedspectator.ModConfig.requireOpForSpectator) {
-                    return source.hasPermission(2); // OP level
+                    return hasPermissionLevel(source,2); // OP level
                 }
-                return source.hasPermission(com.karashi.limitedspectator.ModConfig.spectatorCommandPermissionLevel);
+                return hasPermissionLevel(source,com.karashi.limitedspectator.ModConfig.spectatorCommandPermissionLevel);
             })
             .executes(ctx -> {
                 try {
@@ -175,7 +215,7 @@ public class SpectatorMod {
                             .withStyle(ChatFormatting.GRAY));
                     }
 
-                    player.displayClientMessage(message, com.karashi.limitedspectator.ModConfig.useActionBarMessages);
+                    displayMessage(player,message, com.karashi.limitedspectator.ModConfig.useActionBarMessages);
 
                     return 1;
                 } catch (Exception e) {
@@ -190,9 +230,9 @@ public class SpectatorMod {
         dispatcher.register(Commands.literal("survival")
             .requires(source -> {
                 if (com.karashi.limitedspectator.ModConfig.requireOpForSpectator) {
-                    return source.hasPermission(2); // OP level
+                    return hasPermissionLevel(source,2); // OP level
                 }
-                return source.hasPermission(com.karashi.limitedspectator.ModConfig.survivalCommandPermissionLevel);
+                return hasPermissionLevel(source,com.karashi.limitedspectator.ModConfig.survivalCommandPermissionLevel);
             })
             .executes(ctx -> {
                 try {
@@ -210,10 +250,14 @@ public class SpectatorMod {
                         // Check if player is in a different dimension
                         if (!player.level().dimension().equals(startDimension)) {
                             // Get the target dimension
-                            ServerLevel targetLevel = player.server.getLevel(startDimension);
+                            ServerLevel targetLevel = player.level().getServer().getLevel(startDimension);
                             if (targetLevel != null) {
                                 // Teleport to the correct dimension and position
-                                player.teleportTo(targetLevel, startPos.x, startPos.y, startPos.z, player.getYRot(), player.getXRot());
+                                // MC 26.1 widened teleportTo() — needs an explicit set of
+                                // relative axes and a "preserveLookDirection" flag. We pass
+                                // an empty Set (all coords absolute) and false (keep new yaw/pitch).
+                                player.teleportTo(targetLevel, startPos.x, startPos.y, startPos.z,
+                                        Set.of(), player.getYRot(), player.getXRot(), false);
                             } else {
                                 // Fallback: just teleport to position in current dimension
                                 player.teleportTo(startPos.x, startPos.y, startPos.z);
@@ -244,7 +288,7 @@ public class SpectatorMod {
                     MutableComponent message = Component.translatable("limitedspectator.command.survival.activated")
                         .withStyle(ChatFormatting.GREEN);
 
-                    player.displayClientMessage(message, com.karashi.limitedspectator.ModConfig.useActionBarMessages);
+                    displayMessage(player,message, com.karashi.limitedspectator.ModConfig.useActionBarMessages);
                     return 1;
 
                 } catch (Exception e) {
@@ -275,7 +319,7 @@ public class SpectatorMod {
                     if (config.shouldTeleportBackOnExceed()) {
                         // Teleport the player back to start position
                         player.teleportTo(targetPos.x, targetPos.y, targetPos.z);
-                        player.displayClientMessage(
+                        displayMessage(player,
                             Component.translatable("limitedspectator.error.distance_exceeded").withStyle(ChatFormatting.RED),
                             config.shouldUseActionBarMessages()
                         );
@@ -287,7 +331,7 @@ public class SpectatorMod {
                         player.teleportTo(boundaryPos.x, boundaryPos.y, boundaryPos.z);
 
                         if (config.shouldShowDistanceWarnings()) {
-                            player.displayClientMessage(
+                            displayMessage(player,
                                 Component.translatable("limitedspectator.error.distance_reached").withStyle(ChatFormatting.RED),
                                 config.shouldUseActionBarMessages()
                             );
@@ -387,7 +431,7 @@ public class SpectatorMod {
         // Check if the player is in limited spectator mode
         if (inSpectatorMode.getOrDefault(player.getUUID(), false)) {
             event.setCanceled(true);
-            player.displayClientMessage(
+            displayMessage(player,
                 Component.translatable("limitedspectator.error.dimension_blocked").withStyle(ChatFormatting.RED),
                 com.karashi.limitedspectator.ModConfig.useActionBarMessages
             );
@@ -533,7 +577,7 @@ public class SpectatorMod {
             player.containerMenu.broadcastChanges();
 
             // Feedback message for the player
-            player.displayClientMessage(
+            displayMessage(player,
                 Component.translatable("limitedspectator.error.crafting_blocked").withStyle(ChatFormatting.RED),
                 com.karashi.limitedspectator.ModConfig.useActionBarMessages
             );

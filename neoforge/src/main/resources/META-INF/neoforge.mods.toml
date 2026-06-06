@@ -13,13 +13,13 @@ side="BOTH"
 [[dependencies.limitedspectator]]
 modId="neoforge"
 type="required"
-versionRange="[21.1,)"
+versionRange="[26.1,)"
 ordering="NONE"
 side="BOTH"
 
 [[dependencies.limitedspectator]]
 modId="minecraft"
 type="required"
-versionRange="[1.21.1,1.22)"
+versionRange="${minecraft_version_range}"
 ordering="NONE"
 side="BOTH"

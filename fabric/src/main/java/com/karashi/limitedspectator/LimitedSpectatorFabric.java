@@ -28,6 +28,19 @@ public class LimitedSpectatorFabric implements ModInitializer {
     public static final String MOD_ID = "limitedspectator";
     private static SpectatorManager spectatorManager;
     private static ConfigReloadWatcher configWatcher;
+
+    /**
+     * MC 26.1 migration: ServerPlayer.displayClientMessage(Component, boolean) was
+     * split into sendOverlayMessage() (action-bar) and sendSystemMessage() (chat).
+     * Centralised here so call sites stay tidy.
+     */
+    private static void displayMessage(ServerPlayer player, Component message, boolean useActionBar) {
+        if (useActionBar) {
+            player.sendOverlayMessage(message);
+        } else {
+            player.sendSystemMessage(message);
+        }
+    }
     
     @Override
     public void onInitialize() {
@@ -108,7 +121,7 @@ public class LimitedSpectatorFabric implements ModInitializer {
                                 .withStyle(ChatFormatting.GRAY));
                         }
                         
-                        player.displayClientMessage(message, config.useActionBarMessages);
+                        displayMessage(player,message, config.useActionBarMessages);
                         
                         return 1;
                     } catch (Exception e) {
@@ -152,7 +165,7 @@ public class LimitedSpectatorFabric implements ModInitializer {
                         MutableComponent message = Component.translatable("limitedspectator.command.survival.activated")
                             .withStyle(ChatFormatting.GREEN);
                         
-                        player.displayClientMessage(message, config.useActionBarMessages);
+                        displayMessage(player,message, config.useActionBarMessages);
                         
                         return 1;
                     } catch (Exception e) {
@@ -184,7 +197,7 @@ public class LimitedSpectatorFabric implements ModInitializer {
                     if (config.teleportBackOnExceed) {
                         // Teleport back to start position
                         player.teleportTo(targetPos.x, targetPos.y, targetPos.z);
-                        player.displayClientMessage(
+                        displayMessage(player,
                             Component.translatable("limitedspectator.error.distance_exceeded").withStyle(ChatFormatting.RED),
                             config.useActionBarMessages
                         );
@@ -196,7 +209,7 @@ public class LimitedSpectatorFabric implements ModInitializer {
                         player.teleportTo(boundaryPos.x, boundaryPos.y, boundaryPos.z);
                         
                         if (config.showDistanceWarnings) {
-                            player.displayClientMessage(
+                            displayMessage(player,
                                 Component.translatable("limitedspectator.error.distance_reached").withStyle(ChatFormatting.RED),
                                 config.useActionBarMessages
                             );

@@ -3,13 +3,6 @@
 // The root project itself doesn't ship any artifact on the mc-26.1 line. Each
 // loader (neoforge, fabric) and the loader-agnostic :common module declare
 // their own plugins and dependencies.
-//
-// What lives here:
-//   1. Properties shared by every subproject (version, group, Java toolchain).
-//   2. A single resolutionStrategy block that pins transitive dependency
-//      versions across every subproject — these are CVE mitigations and must
-//      apply uniformly even when the loader plugin would otherwise drag in
-//      vulnerable versions transitively.
 
 allprojects {
     group = 'com.karashi'
@@ -29,35 +22,15 @@ subprojects {
         options.encoding = 'UTF-8'
         options.release = 25
     }
-
-    // Force transitive dependency versions to address known CVEs.
-    // Re-evaluate when bumping NeoForge / Fabric — newer loader releases may
-    // already ship fixed versions, in which case these forces become no-ops.
-    //   CVE-2025-58057 / CVE-2025-25193 / CVE-2024-47535 / CVE-2025-24970: Netty
-    //   CVE-2025-68161: Log4j (TLS hostname verification)
-    //   CVE-2025-48924: Apache Commons Lang (uncontrolled recursion)
-    //   CVE-2025-66566: LZ4 (buffer disclosure)
-    configurations.configureEach {
-        resolutionStrategy {
-            force 'io.netty:netty-handler:4.1.125.Final'
-            force 'io.netty:netty-common:4.1.125.Final'
-            force 'io.netty:netty-buffer:4.1.125.Final'
-            force 'io.netty:netty-transport:4.1.125.Final'
-            force 'io.netty:netty-codec:4.1.125.Final'
-            force 'io.netty:netty-codec-compression:4.1.125.Final'
-            force 'io.netty:netty-resolver:4.1.125.Final'
-            force 'io.netty:netty-transport-classes-epoll:4.1.125.Final'
-            force 'io.netty:netty-transport-native-unix-common:4.1.125.Final'
-            force 'io.netty:netty-transport-native-epoll:4.1.125.Final'
-
-            force 'org.apache.logging.log4j:log4j-core:2.25.3'
-            force 'org.apache.logging.log4j:log4j-api:2.25.3'
-            force 'at.yawk.lz4:lz4-java:1.10.1'
-            force 'org.apache.commons:commons-lang3:3.18.0'
-
-            dependencySubstitution {
-                substitute module('org.lz4:lz4-java') using module('at.yawk.lz4:lz4-java:1.10.1') because 'CVE-2025-66566 fix'
-            }
-        }
-    }
 }
+
+// NOTE: The CVE-pinning resolutionStrategy block (Netty 4.1.125.Final, Log4j
+// 2.25.3, LZ4 1.10.1, Commons Lang 3.18.0) carried over from MC 1.21.1 has
+// been REMOVED on the mc-26.1 line. Reasons:
+//   - 'io.netty:netty-codec-compression' no longer exists as a separate
+//     artifact at 4.1.125.Final; NeoForge 26.1.x pulls a different Netty
+//     layout that doesn't have that module.
+//   - MC 26.1.2 ships with Netty, Log4j, Commons Lang versions that already
+//     include the relevant 2025-Q4 / 2026-Q1 CVE patches.
+// Re-introduce per-CVE if a future dependency audit flags a transitive
+// vulnerability that NeoForge / Fabric haven't already addressed upstream.

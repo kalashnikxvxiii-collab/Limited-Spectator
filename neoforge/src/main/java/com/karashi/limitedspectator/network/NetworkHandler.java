@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -18,8 +18,8 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 public class NetworkHandler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkHandler.class);
-    public static final ResourceLocation HUD_PACKET_ID =
-            ResourceLocation.fromNamespaceAndPath(SpectatorMod.MODID, "hud_toggle");
+    public static final Identifier HUD_PACKET_ID =
+            Identifier.fromNamespaceAndPath(SpectatorMod.MODID, "hud_toggle");
 
     // Packet Registration.
     // The channel is registered as optional() so vanilla clients (and clients without

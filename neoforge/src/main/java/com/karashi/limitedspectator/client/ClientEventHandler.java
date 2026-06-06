@@ -137,7 +137,9 @@ public class ClientEventHandler {
         // --- F1 Toggle Management (Hide GUI) ---
         if (isFakeSpectator) {
             boolean currentlyDown = InputConstants.isKeyDown(
-                    Minecraft.getInstance().getWindow().getWindow(), GLFW.GLFW_KEY_F1
+                    // MC 26.1: InputConstants.isKeyDown now takes the Window object
+                    // directly (no longer the raw GLFW handle).
+                    Minecraft.getInstance().getWindow(), GLFW.GLFW_KEY_F1
             );
 
             if (currentlyDown && !prevHideGuiDown) {

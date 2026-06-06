@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "limited-spectator",
-  "version": "2.0.1",
+  "version": "3.0.0-alpha.1",
   "name": "Limited Spectator",
   "description": "Fully configurable server-authoritative spectator mode with flight, distance limits, and customizable restrictions. Required on the server; client install is optional but highly recommended for the best UX (HUD auto-hide and event sync). Vanilla clients can join servers running this mod.",
   "authors": [
@@ -15,8 +15,8 @@
   "license": "MIT",
   "environment": "both",
   "depends": {
-    "minecraft": ">=1.21.1 <1.22",
-    "neoforge": ">=21.1.0"
+    "minecraft": "26.1.2",
+    "neoforge": ">=26.1.0"
   },
   "optionalDependencies": {},
   "icon": "icon.png"
