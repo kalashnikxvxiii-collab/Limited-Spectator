@@ -7,6 +7,59 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0-alpha.1] - 2026-06-06
+
+### 🚀 Minecraft 26.1.2 Support — Alpha 1
+
+**Pre-release for testing.** Full port of the mod to Minecraft 26.1.2 — the first release on Mojang's new year-based versioning scheme (`YY.release.patch`) and the first MC release with official, stable Mojang mappings. This is a major rewrite at the toolchain and API level; semantics of the spectator mode (commands, restrictions, distance limits, HUD-hide UX) are preserved.
+
+The 1.21.x line continues to receive critical fixes on the [`legacy-1.21`](https://github.com/kalashnikxvxiii/Limited-Spectator/tree/legacy-1.21) branch (last stable: v2.0.1).
+
+### Added
+- **MC 26.1.2 compatibility** for the NeoForge and Fabric loaders.
+- New static helpers `displayMessage(player, msg, useActionBar)` and `hasPermissionLevel(source, level)` in `SpectatorMod` (NeoForge) and `LimitedSpectatorFabric` (Fabric) to centralise the API renames so individual call sites stay tidy.
+
+### Changed
+- **Java 25** is now the minimum runtime (was Java 21). Mojang ships Java 25 with MC 26.1 end-user installers.
+- **Toolchain**:
+  - Gradle wrapper bumped from 8.10 to 9.4.0
+  - NeoForge: switched from NeoGradle 7.0.167 to **ModDevGradle 2.0.141** (the recommended plugin family for 26.1+)
+  - Fabric: Loom 1.7.3 → 1.16.3, plugin ID renamed from `fabric-loom` to `net.fabricmc.fabric-loom`
+  - foojay-resolver-convention 0.8.0 → 1.0.0
+- **Dependencies**:
+  - NeoForge 21.1.217 → 26.1.2.71
+  - Fabric Loader 0.16.5 → 0.19.2
+  - Fabric API 0.107.0+1.21.1 → 0.150.0+26.1.2
+  - JUnit Jupiter 5.10.1 → 5.13.2 (+ explicit `junit-platform-launcher` for Gradle 9.x)
+  - Mockito 5.8.0 → 5.18.0
+- **API renames** (from MC 26.1's deobfuscation pass; no behavioural change):
+  - `ResourceLocation` → `Identifier`
+  - `ResourceKey<T>.location()` → `.identifier()`
+  - `ServerPlayer.displayClientMessage(Component, boolean)` split into `sendSystemMessage(Component)` (chat) and `sendOverlayMessage(Component)` (action bar)
+  - `CommandSourceStack.hasPermission(int)` removed → new `PermissionSet`/`Permission` API (mapped to old semantics via `hasPermissionLevel()` helper; **TODO**: proper named-permission rewrite in a follow-up alpha)
+  - `ServerPlayer.server` field is now private → `player.level().getServer()`
+  - `Entity.teleportTo(ServerLevel, x, y, z, yaw, pitch)` widened to `teleportTo(level, x, y, z, Set<Relative>, yaw, pitch, boolean)`
+  - `Window.getWindow()` (raw GLFW handle accessor) → `.handle()`
+  - `InputConstants.isKeyDown(long, int)` → `isKeyDown(Window, int)`
+  - `TriState` moved from `net.neoforged.neoforge.common.util` to `net.minecraft.util` (Mojang promoted it to a vanilla type)
+- **Fabric build**: Loom 1.16+ no longer remaps Minecraft or mods (MC is unobfuscated). `modImplementation` → plain `implementation`, no more `mappings` line, no more `remapJar`. Plain `jar` task is the published artifact.
+
+### Removed
+- **Quilt loader support.** Quilt Loader has not shipped a Minecraft 26.1.x release (last public reference tracks 1.20.1 as of early 2026). The `quilt/` subproject was deleted from this branch along with the `runQuilt*.bat` scripts and `build-quilt.gradle`. The Quilt JAR (v2.0.1) remains available on the `legacy-1.21` branch and Modrinth/CurseForge.
+- **Carry-over CVE-pinning `resolutionStrategy`** in root `build.gradle` (Netty 4.1.125.Final, Log4j 2.25.3, Commons Lang 3.18.0, LZ4 1.10.1). `io.netty:netty-codec-compression:4.1.125.Final` does not exist in the Netty layout MC 26.1 ships, and the bundled Netty/Log4j/Commons Lang versions in 26.1 already include the 2025-Q4 / 2026-Q1 patches we were forcing. Re-introduce per-CVE only if a future dependency audit flags a transitive vulnerability that NeoForge or Fabric haven't already addressed upstream.
+- **Pre-multi-project leftovers** that had been quietly tracked in git: a stale root `src/` (24 duplicated files), `build-fabric.gradle`, `build-quilt.gradle`, a Mixin-config `META-INF/MANIFEST.MF` referring to a Mixin file the project doesn't use, and three accidentally-tracked test dump txt files.
+
+### Known issues (open for the alpha)
+- `hasPermissionLevel()` is a coarse approximation: any `level >= 1` collapses to "ALL_PERMISSIONS only" (server console / full-op). The fine-grained level 1/2/3/4 distinctions from vanilla are not preserved. Track in a follow-up alpha.
+- The NeoForge build still emits two deprecation warnings on `compileJava` from inside vanilla NeoForge classes — not from this mod.
+
+### Internal
+- Both source sets (`:neoforge`/`:fabric` and `:common`) are grouped under the same `limitedspectator` mod identifier via the loader's plugin API (`neoForge { mods { ... { sourceSet ... } } }` for ModDevGradle and `loom { mods { ... { sourceSet ... } } }` for Loom), so the `:common` classes are part of the same dev mod and the production JAR.
+- `:common` now applies the `net.fabricmc.fabric-loom-companion` marker plugin so Loom 1.16+ can include its source set in the `:fabric` mod block.
+- `:common` Gradle configuration cache is disabled while Loom 1.16-SNAPSHOT settles (see [FabricMC/fabric-loom#1349](https://github.com/FabricMC/fabric-loom/issues/1349)).
+
+---
+
 ## [2.0.1] - 2026-06-05
 
 ### 🔧 Compatibility & Cleanup Hotfix

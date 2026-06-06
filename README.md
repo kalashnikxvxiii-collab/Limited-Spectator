@@ -3,7 +3,14 @@
 
 A multi-loader Minecraft mod that introduces a restricted spectator mode with configurable limitations.
 
-**Supported Loaders**: NeoForge ✅ • Fabric ✅ • Quilt ✅ (Production Only)
+**Supported Loaders**: NeoForge ✅ • Fabric ✅
+
+> **Heads-up (June 2026):** the `main` branch now tracks **Minecraft 26.1.2**.
+> The 1.21.x line is preserved on the [`legacy-1.21`](https://github.com/kalashnikxvxiii/Limited-Spectator/tree/legacy-1.21)
+> branch (latest stable: `v2.0.1`, with NeoForge / Fabric / **Quilt** all
+> three loader builds). Quilt support is paused on 26.1+ because Quilt
+> Loader hasn't shipped MC 26.1 yet — it'll return once the loader catches
+> up. The current 26.1 build is `v3.0.0-alpha.1` (pre-release).
 
 
 📖 Overview
@@ -67,16 +74,19 @@ Full translation support for 5 European languages (English, Italian, German, Fre
 
 | Aspect                | Value                          |
 | --------------------- | ------------------------------ |
-| **Version**           | 2.0.1                          |
-| **Minecraft**         | 1.21.1 → 1.21.11+ (cross-version compatible) |
-| **Mod Loaders**       | NeoForge ✅ • Fabric ✅ • Quilt ✅ |
-| **NeoForge**          | 21.1.217+                      |
-| **Fabric Loader**     | 0.16.5+                        |
-| **Fabric Loom**       | 1.7.3+                         |
-| **Quilt Loader**      | 0.26.4+                        |
-| **Quilt Loom**        | 1.7.3+ (Production only)       |
-| **Java**              | 21                             |
+| **Version**           | 3.0.0-alpha.1 (pre-release)    |
+| **Minecraft**         | 26.1.2 (Mojang's new YY.release.patch versioning) |
+| **Mod Loaders**       | NeoForge ✅ • Fabric ✅ • Quilt ❌ (loader not yet on 26.1) |
+| **NeoForge**          | 26.1.2.71+                     |
+| **NeoGradle plugin**  | ModDevGradle 2.0.141+ (replaces NeoGradle 7.x on 26.1) |
+| **Fabric Loader**     | 0.19.2+                        |
+| **Fabric Loom**       | 1.16.3+                        |
+| **Fabric API**        | 0.150.0+26.1.2                 |
+| **Java**              | 25 (mandated by Mojang for 26.1) |
+| **Gradle**            | 9.4.0+                         |
 | **Mod ID**            | `limitedspectator`             |
+
+For the previous Minecraft 1.21.x line, see the [`legacy-1.21`](https://github.com/kalashnikxvxiii/Limited-Spectator/tree/legacy-1.21) branch — last stable `v2.0.1` (Java 21, NeoForge 21.1.217, Fabric 0.16.5, Quilt 0.26.4).
 
 
 ⚙️ Commands
@@ -237,19 +247,19 @@ Download the correct version for your mod loader:
 
 | Loader | File | Notes |
 |--------|------|-------|
-| **NeoForge** | `LimitedSpectator-neoforge-2.0.1.jar` | Full config support |
-| **Fabric** | `LimitedSpectator-fabric-2.0.1.jar` | Hardcoded defaults |
-| **Quilt** | `LimitedSpectator-quilt-2.0.1.jar` | Uses Fabric API |
+| **NeoForge** | `LimitedSpectator-neoforge-3.0.0-alpha.1.jar` | Full config support |
+| **Fabric** | `LimitedSpectator-fabric-3.0.0-alpha.1.jar` | Hardcoded defaults |
+| **Quilt** | _not available on 26.1+_ — use the [`legacy-1.21` v2.0.1 JAR](https://github.com/kalashnikxvxiii/Limited-Spectator/releases/tag/v2.0.1) on MC 1.21.1 until Quilt Loader catches up |
 
 ### Installation Steps
 
-1. Install your mod loader (NeoForge 21.1.217+ / Fabric 0.16.5+ / Quilt 0.26.4+)
+1. Install your mod loader (NeoForge 26.1.2.71+ / Fabric Loader 0.19.2+ with Fabric API 0.150.0+26.1.2+)
 2. Place the correct JAR into your `mods/` folder
-3. Launch Minecraft
+3. Launch Minecraft 26.1.2 (Java 25 runtime)
 4. **(NeoForge only)** Config file auto-generates at `config/limitedspectator-common.toml`
 5. **(NeoForge only)** Reload changes with `/reload` command
 
-**Note**: Fabric and Quilt versions use hardcoded defaults. Configuration system planned for future release.
+**Note**: The Fabric build uses hardcoded defaults. A loader-agnostic configuration system is planned.
 
 
 👨‍💻 Developer Guide
@@ -282,9 +292,9 @@ cd limitedspectator
 - `common/` - Loader-agnostic code (SpectatorConfig, CommonConfig, ConfigReloadWatcher)
 - `neoforge/` - NeoForge-specific implementation
 - `fabric/` - Fabric-specific implementation
-- `quilt/` - Quilt-specific implementation
+- _`quilt/` lives only on the `legacy-1.21` branch — see the heads-up at the top of this README._
 
-All three loaders share ~95% of core business logic through `SpectatorManager`.
+Both loaders share ~95% of core business logic through `SpectatorManager`.
 
 
 🧪 Developer / Debug Info
